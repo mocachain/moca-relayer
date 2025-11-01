@@ -1,0 +1,92 @@
+{
+  "moca_config": {
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "aws_bls_secret_name": "",
+    "rpc_addrs": [
+      "http://127.0.0.1:26657"
+    ],
+    "evm_addrs": [
+      "http://127.0.0.1:8545"
+    ],
+    "private_key": "3c7ea76ddb53539174caae1dd960b308981933bd6e95196556ba29063200df9c",
+    "bls_private_key": "4af1a342016cea7a241bf8cec11e68963e03d38993002121c51bc961489c4e02",
+    "chain_id": 5151,
+    "start_height": 29480,
+    "monitor_channel_list": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10,
+      11
+    ],
+    "gas_limit": 500000,
+    "fee_amount": 500000000000000,
+    "chain_id_string": "moca_5151-1",
+    "use_websocket": true
+  },
+  "bsc_config": {
+    "op_bnb": true,
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "rpc_addrs": [
+      "https://base.drpc.org"
+    ],
+    "private_key": "3c7ea76ddb53539174caae1dd960b308981933bd6e95196556ba29063200df9c",
+    "gas_limit": 5000000,
+    "gas_price": 20000000,
+    "number_of_blocks_for_finality": 2,
+    "start_height": 34132260,
+    "chain_id": 8453
+  },
+  "relay_config": {
+    "bsc_to_moca_inturn_relayer_timeout": 40,
+    "moca_to_bsc_inturn_relayer_timeout": 30,
+    "moca_sequence_update_latency": 8,
+    "bsc_sequence_update_latency": 12,
+    "cross_chain_contract_addr": "0x9E6bc8416355D533Ec30599dC7bcEaA2E910778a",
+    "moca_light_client_contract_addr": "0xC085cc729CA1931a86752064Bcd40E270a780179",
+    "relayer_hub_contract_addr": "0x6AbB02AD53e5aAD8270e33FFDB47Ad686eF9EaC7",
+    "src_mocasbt_contract_addr": "0x8E72FabdCA48f62025EEe4AF3821a8264eF828D7",
+    "src_mocavc_contract_addr": "0x8fab7f4eaA7FCaC96839f54a843B8d18b0a704Cc"
+  },
+  "vote_pool_config": {
+    "broadcast_interval_in_millisecond": 1000,
+    "votes_batch_max_size_per_interval": 30,
+    "query_interval_in_millisecond": 1000
+  },
+  "log_config": {
+    "level": "DEBUG",
+    "filename": "",
+    "max_file_size_in_mb": 0,
+    "max_backups_of_log_files": 0,
+    "max_age_to_retain_log_files_in_days": 0,
+    "use_console_logger": true,
+    "use_file_logger": false,
+    "compress": false
+  },
+  "admin_config": {
+    "port": 8080
+  },
+  "db_config": {
+    "dialect": "mysql",
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "password": "moca",
+    "username": "root",
+    "url": "/moca_relayer_base?charset=utf8&parseTime=True&loc=Local",
+    "max_idle_conns": 10,
+    "max_open_conns": 100
+  },
+  "alert_config": {
+    "identity": "your_service_name",
+    "telegram_bot_id": "your_bot_id",
+    "telegram_chat_id": "your_chat_id"
+  }
+}

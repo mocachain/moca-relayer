@@ -1,0 +1,92 @@
+{
+  "moca_config": {
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "aws_bls_secret_name": "",
+    "rpc_addrs": [
+      "https://devnet-lcd.mocachain.org"
+    ],
+    "evm_addrs": [
+      "https://devnet-rpc.mocachain.org"
+    ],
+    "private_key": "***** relayer private key *****",
+    "bls_private_key": "***** bls private key *****",
+    "chain_id": 5151,
+    "start_height": 693000,
+    "monitor_channel_list": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      10,
+      11
+    ],
+    "gas_limit": 500000,
+    "fee_amount": 500000000000000,
+    "chain_id_string": "moca_5151-1",
+    "use_websocket": true
+  },
+  "bsc_config": {
+    "op_bnb": false,
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "rpc_addrs": [
+      "https://bsc-testnet-rpc.publicnode.com"
+    ],
+    "private_key": "***** relayer private key *****",
+    "gas_limit": 4700000,
+    "gas_price": 10000000000,
+    "number_of_blocks_for_finality": 2,
+    "start_height": 45790000,
+    "chain_id": 97
+  },
+  "relay_config": {
+    "bsc_to_moca_inturn_relayer_timeout": 40,
+    "moca_to_bsc_inturn_relayer_timeout": 30,
+    "moca_sequence_update_latency": 8,
+    "bsc_sequence_update_latency": 12,
+    "cross_chain_contract_addr": "0x404e7D720C6750186Ad5c644b8B17f11400fC9BE",
+    "moca_light_client_contract_addr": "0x381fe0ebE394EB535BBae51fdDBC5edB4A166aC6",
+    "relayer_hub_contract_addr": "0x70712e1321e8fC629375A72499BDcA7192EBD054",
+    "src_mocasbt_contract_addr": "0x30258B344800c639013a5090bfCC959AB513f295",
+    "src_mocavc_contract_addr": "0xEfdefe08C6cD74CFEB2f0CC2B9401c52B859B427"
+  },
+  "vote_pool_config": {
+    "broadcast_interval_in_millisecond": 1000,
+    "votes_batch_max_size_per_interval": 30,
+    "query_interval_in_millisecond": 1000
+  },
+  "log_config": {
+    "level": "DEBUG",
+    "filename": "",
+    "max_file_size_in_mb": 0,
+    "max_backups_of_log_files": 0,
+    "max_age_to_retain_log_files_in_days": 0,
+    "use_console_logger": true,
+    "use_file_logger": false,
+    "compress": false
+  },
+  "admin_config": {
+    "port": 8080
+  },
+  "db_config": {
+    "dialect": "mysql",
+    "key_type": "local_private_key",
+    "aws_region": "",
+    "aws_secret_name": "",
+    "password": "moca",
+    "username": "root",
+    "url": "/moca_relayer?charset=utf8&parseTime=True&loc=Local",
+    "max_idle_conns": 10,
+    "max_open_conns": 100
+  },
+  "alert_config": {
+    "identity": "your_service_name",
+    "telegram_bot_id": "your_bot_id",
+    "telegram_chat_id": "your_chat_id"
+  }
+}
