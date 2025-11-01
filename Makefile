@@ -50,7 +50,7 @@ format:
 ###                        Docker                                           ###
 ###############################################################################
 DOCKER := $(shell which docker)
-DOCKER_IMAGE := mocafoundation/moca-relayer
+DOCKER_IMAGE := mocachain/moca-relayer
 COMMIT_HASH := $(shell git rev-parse --short=7 HEAD)
 DOCKER_TAG := $(COMMIT_HASH)
 .PHONY: build-docker
