@@ -19,9 +19,9 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/MocaFoundation/moca-relayer/version.AppVersion={{.Version}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommit={{.Commit}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommitDate={{.Date}}
+      - -X github.com/mocachain/moca-relayer/version.AppVersion={{.Version}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommit={{.Commit}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommitDate={{.Date}}
 
   - id: "moca-relayer-darwin-arm64"
     main: ./main.go
@@ -37,9 +37,9 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/MocaFoundation/moca-relayer/version.AppVersion={{.Version}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommit={{.Commit}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommitDate={{.Date}}
+      - -X github.com/mocachain/moca-relayer/version.AppVersion={{.Version}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommit={{.Commit}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommitDate={{.Date}}
 
   - id: "moca-relayer-linux"
     main: ./main.go
@@ -55,9 +55,9 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/MocaFoundation/moca-relayer/version.AppVersion={{.Version}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommit={{.Commit}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommitDate={{.Date}}
+      - -X github.com/mocachain/moca-relayer/version.AppVersion={{.Version}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommit={{.Commit}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommitDate={{.Date}}
 
   - id: "moca-relayer-linux-arm64"
     main: ./main.go
@@ -73,9 +73,9 @@ builds:
     flags:
       - -tags=cgo
     ldflags:
-      - -X github.com/MocaFoundation/moca-relayer/version.AppVersion={{.Version}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommit={{.Commit}}
-      - -X github.com/MocaFoundation/moca-relayer/version.GitCommitDate={{.Date}}
+      - -X github.com/mocachain/moca-relayer/version.AppVersion={{.Version}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommit={{.Commit}}
+      - -X github.com/mocachain/moca-relayer/version.GitCommitDate={{.Date}}
 
   # - id: "moca-relayer-windows"
   #   main: ./main.go
@@ -92,9 +92,9 @@ builds:
   #     - -tags=cgo
   #     - -buildmode=exe
   #   ldflags:
-  #     - -X github.com/MocaFoundation/moca-relayer/version.AppVersion={{.Version}}
-  #     - -X github.com/MocaFoundation/moca-relayer/version.GitCommit={{.Commit}}
-  #     - -X github.com/MocaFoundation/moca-relayer/version.GitCommitDate={{.Date}}
+  #     - -X github.com/mocachain/moca-relayer/version.AppVersion={{.Version}}
+  #     - -X github.com/mocachain/moca-relayer/version.GitCommit={{.Commit}}
+  #     - -X github.com/mocachain/moca-relayer/version.GitCommitDate={{.Date}}
 
 archives:
   - format: tar.gz

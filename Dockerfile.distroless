@@ -14,7 +14,7 @@ RUN apt-get -y update && apt-get -y install $PACKAGES
 
 # For Private REPO
 ARG GH_TOKEN=""
-RUN go env -w GOPRIVATE="github.com/MocaFoundation/*"
+RUN go env -w GOPRIVATE="github.com/mocachain/*"
 RUN git config --global url."https://${GH_TOKEN}@github.com".insteadOf "https://github.com"
 
 RUN make build

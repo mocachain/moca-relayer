@@ -1,7 +1,7 @@
 VERSION=$(shell git describe --tags)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
-REPO=github.com/MocaFoundation/moca-relayer
+REPO=github.com/mocachain/moca-relayer
 
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
@@ -78,7 +78,7 @@ stop-dc:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/MocaFoundation/moca-relayer
+PACKAGE_NAME:=github.com/mocachain/moca-relayer
 GOLANG_CROSS_VERSION  = v1.22
 GOPATH ?= '$(HOME)/go'
 release-dry-run:
