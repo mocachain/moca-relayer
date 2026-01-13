@@ -89,6 +89,11 @@ func (a *MocaAssembler) AssembleTransactionsLoop() {
 				continue
 			}
 			a.relayerNonceStatus.Nonce = nonce
+			if isInturnRelyer {
+				a.relayerNonceStatus.HasRetrieved = true
+			} else {
+				a.relayerNonceStatus.HasRetrieved = false
+			}
 		}
 
 		wg := new(sync.WaitGroup)

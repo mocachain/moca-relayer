@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,20 +20,22 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkErrors "github.com/cosmos/cosmos-sdk/types/errors"
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	ethtypes "github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/viper"
 
-	gnfdsdktypes "github.com/evmos/evmos/v12/sdk/types"
 	sdktypes "github.com/mocachain/moca-go-sdk/types"
 	relayercommon "github.com/mocachain/moca-relayer/common"
 	"github.com/mocachain/moca-relayer/config"
-	"github.com/mocachain/moca-relayer/contract/universalVerifier"
 	"github.com/mocachain/moca-relayer/contract/mocacrosschainupgradeable"
+	"github.com/mocachain/moca-relayer/contract/universalVerifier"
 	"github.com/mocachain/moca-relayer/logging"
 	"github.com/mocachain/moca-relayer/types"
+	gnfdsdktypes "github.com/evmos/evmos/v12/sdk/types"
 )
 
 type MocaExecutor struct {
@@ -413,6 +416,47 @@ func (e *MocaExecutor) CallMocaSBTAckMintedContract(chainId uint32, user ethcomm
 		return ethcommon.Hash{}, err
 	}
 	return tx.Hash(), nil
+}
+
+func (e *MocaExecutor) GetCrossChainStatus(chainId uint32, user ethcommon.Address) (uint8, error) {
+	e.mutex.RLock()
+	defer e.mutex.RUnlock()
+
+	ctx, cancel := context.WithTimeout(context.Background(), RPCTimeout)
+	defer cancel()
+
+	opts := &bind.CallOpts{Pending: false, Context: ctx}
+	return e.getSBTCrossChainClient().GetCrossChainStatus(opts, chainId, user)
+}
+
+func (e *MocaExecutor) WaitForReceipt(txHash ethcommon.Hash) (*ethtypes.Receipt, error) {
+	// Wait up to 60 seconds for the receipt
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("timeout waiting for receipt: %s", txHash.Hex())
+		case <-ticker.C:
+			// Use the same context for consistency
+			receipt, err := e.GetEthClient().TransactionReceipt(ctx, txHash)
+			if err != nil {
+				if err == ethereum.NotFound {
+					continue
+				}
+				// Some clients might return an error string containing "not found"
+				if strings.Contains(err.Error(), "not found") {
+					continue
+				}
+				return nil, err
+			}
+			return receipt, nil
+		}
+	}
 }
 
 func (e *MocaExecutor) ClaimPackages(client *MocaClient, payloadBts []byte, aggregatedSig []byte, voteAddressSet []uint64, claimTs int64, oracleSeq uint64, nonce uint64) (string, error) {
