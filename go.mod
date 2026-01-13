@@ -7,13 +7,13 @@ toolchain go1.23.12
 require (
 	cosmossdk.io/math v1.4.0
 	github.com/0xPolygon/polygon-edge v1.3.3
-	github.com/mocachain/moca-go-sdk v0.0.0-00010101000000-000000000000
 	github.com/avast/retry-go/v4 v4.3.1
 	github.com/aws/aws-sdk-go v1.52.2
 	github.com/cometbft/cometbft v0.38.15
 	github.com/cosmos/cosmos-sdk v0.50.13
 	github.com/ethereum/go-ethereum v1.15.5
 	github.com/evmos/evmos/v12 v12.1.6
+	github.com/mocachain/moca-go-sdk v0.0.0-00010101000000-000000000000
 	github.com/op/go-logging v0.0.0-20160315200505-970db520ece7
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.20.5
@@ -45,7 +45,6 @@ require (
 	github.com/DataDog/datadog-go v4.8.3+incompatible // indirect
 	github.com/DataDog/zstd v1.5.5 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
-	github.com/mocachain/moca-common/go v0.0.0-00010101000000-000000000000 // indirect
 	github.com/VictoriaMetrics/fastcache v1.12.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.2.0 // indirect
@@ -149,6 +148,7 @@ require (
 	github.com/minio/sha256-simd v1.0.1 // indirect
 	github.com/mitchellh/go-testing-interface v1.14.1 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/mocachain/moca-common/go v0.0.0-00010101000000-000000000000 // indirect
 	github.com/mtibben/percent v0.2.1 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oasisprotocol/curve25519-voi v0.0.0-20230904125328-1f23a7beb09a // indirect
@@ -220,26 +220,26 @@ require (
 )
 
 replace (
-	cosmossdk.io/api => github.com/mocachain/moca-cosmos-sdk/api v0.0.0-20251209033551-33b9b80268d2
-	cosmossdk.io/simapp => github.com/mocachain/moca-cosmos-sdk/simapp v0.0.0-20251209033551-33b9b80268d2
-	cosmossdk.io/store => github.com/mocachain/moca-cosmos-sdk/store v0.0.0-20251209033551-33b9b80268d2
-	cosmossdk.io/x/tx => github.com/mocachain/moca-cosmos-sdk/x/tx v0.0.0-20251209033551-33b9b80268d2
+	cosmossdk.io/api => github.com/mocachain/moca-cosmos-sdk/api v1.1.0
+	cosmossdk.io/simapp => github.com/mocachain/moca-cosmos-sdk/simapp v1.1.0
+	cosmossdk.io/store => github.com/mocachain/moca-cosmos-sdk/store v1.1.0
+	cosmossdk.io/x/tx => github.com/mocachain/moca-cosmos-sdk/x/tx v1.1.0
 	github.com/0xPolygon/polygon-edge v1.3.3 => github.com/mocachain/polygon-edge v1.3.3-moca.1
 	github.com/btcsuite/btcd => github.com/btcsuite/btcd v0.22.1
 	github.com/btcsuite/btcd/btcec/v2 => github.com/btcsuite/btcd/btcec/v2 v2.3.2
-	github.com/cometbft/cometbft => github.com/mocachain/moca-cometbft v1.0.0-audit-fix
-	github.com/cometbft/cometbft-db => github.com/mocachain/moca-cometbft-db v1.0.0-alpha.1
+	github.com/cometbft/cometbft => github.com/mocachain/moca-cometbft v1.1.0
+	github.com/cometbft/cometbft-db => github.com/mocachain/moca-cometbft-db v1.1.0
 	github.com/confio/ics23/go => github.com/cosmos/cosmos-sdk/ics23/go v0.8.0
 	github.com/consensys/gnark-crypto => github.com/consensys/gnark-crypto v0.7.0
-	github.com/cosmos/cosmos-sdk => github.com/mocachain/moca-cosmos-sdk v1.0.0-audit-fix
-	github.com/cosmos/iavl => github.com/mocachain/moca-iavl v1.0.0-alpha.1
-	github.com/cosmos/ibc-go/v10 => github.com/mocachain/moca-ibc-go/v10 v10.0.0-alpha.1
-	github.com/ethereum/go-ethereum => github.com/mocachain/go-ethereum v1.10.27-0.20250415055204-fbf69808eb10
-	github.com/evmos/evmos/v12 => github.com/mocachain/moca/v12 v12.0.0-alpha.1
+	github.com/cosmos/cosmos-sdk => github.com/mocachain/moca-cosmos-sdk v1.1.0
+	github.com/cosmos/iavl => github.com/mocachain/moca-iavl v1.1.0
+	github.com/cosmos/ibc-go/v10 => github.com/mocachain/moca-ibc-go/v10 v10.1.0
+	github.com/ethereum/go-ethereum => github.com/mocachain/go-ethereum v1.10.27-moca.1
+	github.com/evmos/evmos/v12 => github.com/mocachain/moca/v12 v12.1.0
 	github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 	github.com/syndtr/goleveldb => github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 )
 
-replace github.com/mocachain/moca-go-sdk => github.com/mocachain/moca-go-sdk v1.0.0-audit-fix
+replace github.com/mocachain/moca-go-sdk => github.com/mocachain/moca-go-sdk v1.1.0
 
-replace github.com/mocachain/moca-common/go => github.com/mocachain/moca-common/go v1.0.1-cosmos-sdk-upgrade
+replace github.com/mocachain/moca-common/go => github.com/mocachain/moca-common/go v1.1.0
