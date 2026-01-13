@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
+	"strings"
 	"sync"
 	"time"
 
@@ -298,6 +299,35 @@ func (e *BSCExecutor) GetEthClient() *ethclient.Client {
 	return e.bscClients[e.clientIdx].ethClient
 }
 
+// WaitForReceipt waits for a BSC transaction receipt with timeout
+// This uses BSC RPC client, unlike MocaExecutor.WaitForReceipt which uses Moca RPC
+func (e *BSCExecutor) WaitForReceipt(txHash common.Hash) (*types.Receipt, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, fmt.Errorf("timeout waiting for BSC receipt: %s", txHash.Hex())
+		case <-ticker.C:
+			receipt, err := e.GetEthClient().TransactionReceipt(ctx, txHash)
+			if err != nil {
+				if err == ethereum.NotFound {
+					continue
+				}
+				if strings.Contains(err.Error(), "not found") {
+					continue
+				}
+				return nil, err
+			}
+			return receipt, nil
+		}
+	}
+}
+
 func (e *BSCExecutor) getCrossChainClient() *crosschain.CrossChain {
 	e.mutex.RLock()
 	defer e.mutex.RUnlock()
@@ -539,6 +569,16 @@ func (e *BSCExecutor) SyncTendermintLightBlock(height uint64) (common.Hash, erro
 	if err != nil {
 		return common.Hash{}, err
 	}
+	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+	receipt, err := e.WaitForReceipt(tx.Hash())
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("SyncLightBlock receipt verification failed: %w", err)
+	}
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return common.Hash{}, fmt.Errorf("SyncLightBlock reverted: %s", tx.Hash().Hex())
+	}
+	logging.Logger.Infof("SyncLightBlock confirmed: block=%d, gasUsed=%d, tx=%s",
+		receipt.BlockNumber.Uint64(), receipt.GasUsed, tx.Hash().Hex())
 	return tx.Hash(), nil
 }
 
@@ -591,6 +631,16 @@ func (e *BSCExecutor) CallBuildInSystemContract(blsSignature []byte, validatorSe
 	if err != nil {
 		return common.Hash{}, err
 	}
+	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+	receipt, err := e.WaitForReceipt(tx.Hash())
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("HandlePackage receipt verification failed: %w", err)
+	}
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return common.Hash{}, fmt.Errorf("HandlePackage reverted: %s", tx.Hash().Hex())
+	}
+	logging.Logger.Infof("HandlePackage confirmed: block=%d, gasUsed=%d, tx=%s",
+		receipt.BlockNumber.Uint64(), receipt.GasUsed, tx.Hash().Hex())
 	return tx.Hash(), nil
 }
 
@@ -704,6 +754,16 @@ func (e *BSCExecutor) claimReward() (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
+	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+	receipt, err := e.WaitForReceipt(txResp.Hash())
+	if err != nil {
+		return common.Hash{}, fmt.Errorf("ClaimReward receipt verification failed: %w", err)
+	}
+	if receipt.Status != types.ReceiptStatusSuccessful {
+		return common.Hash{}, fmt.Errorf("ClaimReward reverted: %s", txResp.Hash().Hex())
+	}
+	logging.Logger.Infof("ClaimReward confirmed: block=%d, gasUsed=%d, tx=%s",
+		receipt.BlockNumber.Uint64(), receipt.GasUsed, txResp.Hash().Hex())
 	return txResp.Hash(), nil
 }
 

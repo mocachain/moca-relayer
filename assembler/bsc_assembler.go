@@ -10,6 +10,7 @@ import (
 	oracletypes "github.com/cosmos/cosmos-sdk/x/oracle/types"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	ethcommon "github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/rlp"
 
 	"github.com/mocachain/moca-relayer/common"
 	"github.com/mocachain/moca-relayer/config"
@@ -271,7 +272,6 @@ func (a *BSCAssembler) process(channelId types.ChannelId) error {
 			return err
 		}
 		logging.Logger.Infof("relayed packages with oracle sequence %d ", i)
-		a.relayerNonce++
 	}
 	return nil
 }
@@ -323,45 +323,128 @@ func (a *BSCAssembler) processPkgs(client *executor.MocaClient, pkgs []*model.Bs
 		return fmt.Errorf("failed to aggregate signature, err=%s", err.Error())
 	}
 
-	pack, err := DeserializeRawMocaSBTAckPackage(votes[0].ClaimPayload[sdk.AckPackageHeaderLength+ORACLETYPES_PACKAGES_PREFIX:])
-	if err != nil {
-		return fmt.Errorf("failed to deserialize raw crosschain package, err=%s", err.Error())
+	// FIX HIGH-001: Correctly decode RLP payload without fixed offset
+	// Only skip AckPackageHeader, then RLP decode the entire packages
+	if len(votes[0].ClaimPayload) < sdk.AckPackageHeaderLength {
+		return fmt.Errorf("invalid claim payload: length %d less than header length %d",
+			len(votes[0].ClaimPayload), sdk.AckPackageHeaderLength)
 	}
+	payload := votes[0].ClaimPayload[sdk.AckPackageHeaderLength:]
+	var oraclePackages oracletypes.Packages
+	if err := rlp.DecodeBytes(payload, &oraclePackages); err != nil {
+		return fmt.Errorf("failed to decode RLP packages: %w", err)
+	}
+
+	// FIX MED-002: Iterate through all packages (not just the first one)
+	currentNonce := nonce
 	var txHash string
-	logging.Logger.Debugf("pack.OperationType %d", pack.OperationType)
-	if pack.OperationType == OperationMocaSBTACK {
-		tp, errs := DeserializeMocaSBTAckPackage(pack.Package)
-		if errs != nil {
-			panic("deserialize mocasbt cross chain package error")
+
+	// FIX: Ensure nonce is synchronized on ALL return paths (success or error)
+	// This prevents nonce reuse when partial Ack succeeds but later fails
+	defer func() {
+		a.relayerNonce = currentNonce
+	}()
+
+	for idx, oraclePkg := range oraclePackages {
+		if len(oraclePkg.Payload) == 0 {
+			logging.Logger.Warningf("Package %d has empty payload, skipping", idx)
+			continue
 		}
-		switch mocasbtack := tp.(type) {
-		case *MocaSBTAckPackageStruct:
-			// TODO: for _,addr := mocasbtack.Toaddrs{}
+
+		// FIX HIGH-001: Read OperationType from Package.Payload[0]
+		op := oraclePkg.Payload[0]
+		data := oraclePkg.Payload[1:]
+
+		logging.Logger.Debugf("Processing package %d/%d: ChannelId=%d, Sequence=%d, OperationType=%d",
+			idx+1, len(oraclePackages), oraclePkg.ChannelId, oraclePkg.Sequence, op)
+
+		// Handle SBT Ack packages
+		if op == OperationMocaSBTACK {
+			tp, err := DeserializeMocaSBTAckPackage(data)
+			if err != nil {
+				return fmt.Errorf("failed to deserialize SBT Ack package %d: %w", idx, err)
+		}
+
+			mocasbtack, ok := tp.(*MocaSBTAckPackageStruct)
+			if !ok {
+				return fmt.Errorf("invalid SBT Ack package type for package %d", idx)
+			}
+
 			var status uint8
 			if mocasbtack.Status == STATUS_SUCCESS {
 				status = TYPES_MIRROR_SUCCEED
 			} else {
 				status = TYPES_MIRROR_FAILED
 			}
-			tx, errs := a.mocaExecutor.CallMocaSBTAckMintedContract(uint32(a.getChainId()), mocasbtack.Toaddrs[0], status, nonce)
-			txHash = tx.String()
-			if errs != nil {
-				return fmt.Errorf("failed to Call MocaSBTAckMintedContract, txHash=%s, err=%s", txHash, errs.Error())
+
+			// FIX MED-003: Iterate through all addresses (not just Toaddrs[0])
+			logging.Logger.Infof("Processing SBT Ack package %d with %d addresses, status=%d",
+				idx, len(mocasbtack.Toaddrs), status)
+
+			for addrIdx, toAddr := range mocasbtack.Toaddrs {
+				// Idempotency Check: Check if already processed on-chain
+				// TYPES_MIRROR_FAILED = 2, TYPES_MIRROR_SUCCEED = 3
+				chainStatus, err := a.mocaExecutor.GetCrossChainStatus(uint32(a.config.BSCConfig.ChainId), toAddr)
+				if err == nil {
+					if chainStatus == TYPES_MIRROR_SUCCEED || chainStatus == TYPES_MIRROR_FAILED {
+						logging.Logger.Infof("Address already processed: seq=%d, pkg=%d, addr[%d]=%s, status=%d, skipping",
+							sequence, idx, addrIdx, toAddr.String(), chainStatus)
+						continue
+					}
+				} else {
+					logging.Logger.Debugf("Cannot query status for %s (may be first time): %v, proceeding with tx", toAddr.String(), err)
+				}
+
+				tx, err := a.mocaExecutor.CallMocaSBTAckMintedContract(
+					uint32(a.getChainId()),
+					toAddr,
+					status,
+					currentNonce,
+				)
+				if err != nil {
+					return fmt.Errorf("failed to Call MocaSBTAckMintedContract for package %d, addr[%d]=%s: %w",
+						idx, addrIdx, toAddr.String(), err)
 			}
-			// mocasbt should also IncrReceiveSequence, use nonce + 1
-			txHash, err = a.mocaExecutor.ClaimPackages(client, votes[0].ClaimPayload, aggregatedSignature, valBitSet.Bytes(), pkgs[0].TxTime, sequence, nonce+1)
-			a.relayerNonce++
-			logging.Logger.Debugf("CallMocaSBTAckMintedContract chainid=%d, toaddrs[0]=%s, status=%d, nonce=%d, sequence=%d", a.getChainId(), mocasbtack.Toaddrs[0].String(), status, nonce, sequence)
-		default:
-			panic("unknown mocasbt cross chain ack package type")
+
+				// Wait for Receipt (Receipt Verification)
+				receipt, err := a.mocaExecutor.WaitForReceipt(tx)
+				if err != nil {
+					return fmt.Errorf("failed to wait for receipt for package %d, addr[%d]=%s: %w",
+						idx, addrIdx, toAddr.String(), err)
+				}
+
+				if receipt.Status == 0 {
+					return fmt.Errorf("transaction reverted: seq=%d, pkg=%d, addr[%d]=%s, txHash=%s, block=%d",
+						sequence, idx, addrIdx, toAddr.String(), tx.Hex(), receipt.BlockNumber.Uint64())
+				}
+
+				logging.Logger.Infof("SBT Ack Success: seq=%d, pkg=%d, addr[%d]=%s, txHash=%s, nonce=%d, block=%d, gasUsed=%d",
+					sequence, idx, addrIdx, toAddr.String(), tx.String(), currentNonce, receipt.BlockNumber.Uint64(), receipt.GasUsed)
+
+				// Each address consumes one nonce ONLY after confirmation
+				currentNonce++
+			}
 		}
-	} else {
-		txHash, err = a.mocaExecutor.ClaimPackages(client, votes[0].ClaimPayload, aggregatedSignature, valBitSet.Bytes(), pkgs[0].TxTime, sequence, nonce)
+		// Other OperationType can be handled here in the future
 	}
+
+	// FIX: ClaimPackages should be called ONLY ONCE after processing all packages
+	txHash, err = a.mocaExecutor.ClaimPackages(
+		client,
+		votes[0].ClaimPayload,
+		aggregatedSignature,
+		valBitSet.Bytes(),
+		pkgs[0].TxTime,
+		sequence,
+		currentNonce,
+	)
 	if err != nil {
-		return fmt.Errorf("failed to claim packages, txHash=%s, err=%s", txHash, err.Error())
+		return fmt.Errorf("failed to claim packages for sequence=%d: %w", sequence, err)
 	}
-	logging.Logger.Infof("claimed transaction with oracle_sequence=%d, txHash=%s", sequence, txHash)
+	currentNonce++
+
+	logging.Logger.Infof("ClaimPackages completed: sequence=%d, txHash=%s, nonce=%d",
+		sequence, txHash, currentNonce)
 
 	var pkgIds []int64
 	for _, p := range pkgs {
@@ -369,14 +452,17 @@ func (a *BSCAssembler) processPkgs(client *executor.MocaClient, pkgs []*model.Bs
 	}
 	a.metricService.SetBSCProcessedBlockHeight(pkgs[0].Height)
 
+	// Note: Nonce synchronization is handled by defer at function entry
+	// This ensures both success and error paths maintain correct nonce state
+
 	if !isInturnRelyer {
 		if err = a.daoManager.BSCDao.UpdateBatchPackagesClaimedTxHash(pkgIds, txHash); err != nil {
-			return fmt.Errorf("failed to update batch packages and claimedTxHash, err=%s", err.Error())
+			return fmt.Errorf("failed to update batch packages and claimedTxHash: %w", err)
 		}
 		return nil
 	}
 	if err = a.daoManager.BSCDao.UpdateBatchPackagesStatusAndClaimedTxHash(pkgIds, db.Delivered, txHash); err != nil {
-		return fmt.Errorf("failed to update packages to 'Delivered', error=%s", err.Error())
+		return fmt.Errorf("failed to update packages to 'Delivered': %w", err)
 	}
 	a.inturnRelayerSequenceStatus.NextDeliverySeq = sequence + 1
 	return nil
