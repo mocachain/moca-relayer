@@ -363,7 +363,7 @@ func (a *BSCAssembler) processPkgs(client *executor.MocaClient, pkgs []*model.Bs
 			tp, err := DeserializeMocaSBTAckPackage(data)
 			if err != nil {
 				return fmt.Errorf("failed to deserialize SBT Ack package %d: %w", idx, err)
-		}
+			}
 
 			mocasbtack, ok := tp.(*MocaSBTAckPackageStruct)
 			if !ok {
@@ -404,7 +404,7 @@ func (a *BSCAssembler) processPkgs(client *executor.MocaClient, pkgs []*model.Bs
 				if err != nil {
 					return fmt.Errorf("failed to Call MocaSBTAckMintedContract for package %d, addr[%d]=%s: %w",
 						idx, addrIdx, toAddr.String(), err)
-			}
+				}
 
 				// Wait for Receipt (Receipt Verification)
 				receipt, err := a.mocaExecutor.WaitForReceipt(tx)

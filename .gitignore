@@ -8,3 +8,4 @@ integrationtest/config/*
 deployment/dockerup/validator.json
 deployment/dockerup/init_done
 dist
+.env
