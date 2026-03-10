@@ -28,13 +28,13 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/spf13/viper"
 
-	sdktypes "github.com/mocachain/moca-go-sdk/types"
-	relayercommon "github.com/mocachain/moca-relayer/common"
-	"github.com/mocachain/moca-relayer/config"
-	"github.com/mocachain/moca-relayer/contract/mocacrosschainupgradeable"
-	"github.com/mocachain/moca-relayer/contract/universalVerifier"
-	"github.com/mocachain/moca-relayer/logging"
-	"github.com/mocachain/moca-relayer/types"
+	sdktypes "github.com/MocaFoundation/moca-go-sdk/types"
+	relayercommon "github.com/MocaFoundation/moca-relayer/common"
+	"github.com/MocaFoundation/moca-relayer/config"
+	"github.com/MocaFoundation/moca-relayer/contract/mocacrosschainupgradeable"
+	"github.com/MocaFoundation/moca-relayer/contract/universalVerifier"
+	"github.com/MocaFoundation/moca-relayer/logging"
+	"github.com/MocaFoundation/moca-relayer/types"
 	gnfdsdktypes "github.com/evmos/evmos/v12/sdk/types"
 )
 

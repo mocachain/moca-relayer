@@ -1,7 +1,16 @@
+# Load .env file if it exists
+-include .env
+export
+
+# Configure git to use HTTPS+Token for private repositories if GITHUB_TOKEN is set
+ifdef GITHUB_TOKEN
+  $(shell git config --global url."https://$(GITHUB_TOKEN):@github.com/".insteadOf "https://github.com/" 2>/dev/null)
+endif
+
 VERSION=$(shell git describe --tags)
 GIT_COMMIT=$(shell git rev-parse HEAD)
 GIT_COMMIT_DATE=$(shell git log -n1 --pretty='format:%cd' --date=format:'%Y%m%d')
-REPO=github.com/mocachain/moca-relayer
+REPO=github.com/MocaFoundation/moca-relayer
 
 ldflags = -X $(REPO)/version.AppVersion=$(VERSION) \
           -X $(REPO)/version.GitCommit=$(GIT_COMMIT) \
@@ -50,12 +59,18 @@ format:
 ###                        Docker                                           ###
 ###############################################################################
 DOCKER := $(shell which docker)
-DOCKER_IMAGE := mocachain/moca-relayer
+DOCKER_IMAGE := zkmelabs/moca-relayer
 COMMIT_HASH := $(shell git rev-parse --short=7 HEAD)
 DOCKER_TAG := $(COMMIT_HASH)
 .PHONY: build-docker
 build-docker:
-	$(DOCKER) build --progress=plain -t ${DOCKER_IMAGE}:${DOCKER_TAG} .
+	@if [ -n "$(GITHUB_TOKEN)" ]; then \
+		echo "Building with GITHUB_TOKEN for private repositories..."; \
+		$(DOCKER) build --progress=plain --build-arg GITHUB_TOKEN=$(GITHUB_TOKEN) -t ${DOCKER_IMAGE}:${DOCKER_TAG} .; \
+	else \
+		echo "Building without GITHUB_TOKEN (public repositories only)..."; \
+		$(DOCKER) build --progress=plain -t ${DOCKER_IMAGE}:${DOCKER_TAG} .; \
+	fi
 	$(DOCKER) tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:latest
 	$(DOCKER) tag ${DOCKER_IMAGE}:${DOCKER_TAG} ${DOCKER_IMAGE}:${COMMIT_HASH}
 
@@ -78,9 +93,9 @@ stop-dc:
 ###                                Releasing                                ###
 ###############################################################################
 
-PACKAGE_NAME:=github.com/mocachain/moca-relayer
+PACKAGE_NAME:=github.com/MocaFoundation/moca-relayer
 GOLANG_CROSS_VERSION  = v1.22
-GOPATH ?= '$(HOME)/go'
+GOPATH ?= $(HOME)/go
 release-dry-run:
 	docker run \
 		--rm \

@@ -28,14 +28,14 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 	"github.com/spf13/viper"
 
-	relayercommon "github.com/mocachain/moca-relayer/common"
-	"github.com/mocachain/moca-relayer/config"
-	"github.com/mocachain/moca-relayer/contract/crosschain"
-	"github.com/mocachain/moca-relayer/contract/mocalightclient"
-	"github.com/mocachain/moca-relayer/contract/relayerhub"
-	"github.com/mocachain/moca-relayer/logging"
-	"github.com/mocachain/moca-relayer/metric"
-	rtypes "github.com/mocachain/moca-relayer/types"
+	relayercommon "github.com/MocaFoundation/moca-relayer/common"
+	"github.com/MocaFoundation/moca-relayer/config"
+	"github.com/MocaFoundation/moca-relayer/contract/crosschain"
+	"github.com/MocaFoundation/moca-relayer/contract/mocalightclient"
+	"github.com/MocaFoundation/moca-relayer/contract/relayerhub"
+	"github.com/MocaFoundation/moca-relayer/logging"
+	"github.com/MocaFoundation/moca-relayer/metric"
+	rtypes "github.com/MocaFoundation/moca-relayer/types"
 )
 
 type BSCClient struct {
@@ -569,7 +569,7 @@ func (e *BSCExecutor) SyncTendermintLightBlock(height uint64) (common.Hash, erro
 	if err != nil {
 		return common.Hash{}, err
 	}
-	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+
 	receipt, err := e.WaitForReceipt(tx.Hash())
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("SyncLightBlock receipt verification failed: %w", err)
@@ -579,6 +579,7 @@ func (e *BSCExecutor) SyncTendermintLightBlock(height uint64) (common.Hash, erro
 	}
 	logging.Logger.Infof("SyncLightBlock confirmed: block=%d, gasUsed=%d, tx=%s",
 		receipt.BlockNumber.Uint64(), receipt.GasUsed, tx.Hash().Hex())
+
 	return tx.Hash(), nil
 }
 
@@ -631,7 +632,7 @@ func (e *BSCExecutor) CallBuildInSystemContract(blsSignature []byte, validatorSe
 	if err != nil {
 		return common.Hash{}, err
 	}
-	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+
 	receipt, err := e.WaitForReceipt(tx.Hash())
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("HandlePackage receipt verification failed: %w", err)
@@ -641,6 +642,7 @@ func (e *BSCExecutor) CallBuildInSystemContract(blsSignature []byte, validatorSe
 	}
 	logging.Logger.Infof("HandlePackage confirmed: block=%d, gasUsed=%d, tx=%s",
 		receipt.BlockNumber.Uint64(), receipt.GasUsed, tx.Hash().Hex())
+
 	return tx.Hash(), nil
 }
 
@@ -754,7 +756,7 @@ func (e *BSCExecutor) claimReward() (common.Hash, error) {
 	if err != nil {
 		return common.Hash{}, err
 	}
-	// Wait for receipt and verify success (use BSC RPC, not Moca RPC)
+
 	receipt, err := e.WaitForReceipt(txResp.Hash())
 	if err != nil {
 		return common.Hash{}, fmt.Errorf("ClaimReward receipt verification failed: %w", err)
@@ -764,6 +766,7 @@ func (e *BSCExecutor) claimReward() (common.Hash, error) {
 	}
 	logging.Logger.Infof("ClaimReward confirmed: block=%d, gasUsed=%d, tx=%s",
 		receipt.BlockNumber.Uint64(), receipt.GasUsed, txResp.Hash().Hex())
+
 	return txResp.Hash(), nil
 }
 

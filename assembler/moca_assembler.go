@@ -10,17 +10,17 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 
 	"github.com/0xPolygon/polygon-edge/bls"
-	"github.com/mocachain/moca-relayer/common"
-	"github.com/mocachain/moca-relayer/config"
-	"github.com/mocachain/moca-relayer/db"
-	"github.com/mocachain/moca-relayer/db/dao"
-	"github.com/mocachain/moca-relayer/db/model"
-	"github.com/mocachain/moca-relayer/executor"
-	"github.com/mocachain/moca-relayer/logging"
-	"github.com/mocachain/moca-relayer/metric"
-	"github.com/mocachain/moca-relayer/types"
-	"github.com/mocachain/moca-relayer/util"
-	"github.com/mocachain/moca-relayer/vote"
+	"github.com/MocaFoundation/moca-relayer/common"
+	"github.com/MocaFoundation/moca-relayer/config"
+	"github.com/MocaFoundation/moca-relayer/db"
+	"github.com/MocaFoundation/moca-relayer/db/dao"
+	"github.com/MocaFoundation/moca-relayer/db/model"
+	"github.com/MocaFoundation/moca-relayer/executor"
+	"github.com/MocaFoundation/moca-relayer/logging"
+	"github.com/MocaFoundation/moca-relayer/metric"
+	"github.com/MocaFoundation/moca-relayer/types"
+	"github.com/MocaFoundation/moca-relayer/util"
+	"github.com/MocaFoundation/moca-relayer/vote"
 )
 
 type AlertKey struct {
