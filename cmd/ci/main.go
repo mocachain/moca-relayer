@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"text/template"
 )
 
@@ -22,74 +23,20 @@ type ComposeConfig struct {
 	BasePorts       PortConfig
 }
 
-const dockerComposeTemplate = `
-services:
-  relayer-mysql:
-    container_name: relayer-mysql
-    image: {{.MySQLImage}}
-    networks:
-      - moca-network
-    volumes:
-      - db-data:/var/lib/mysql
-    environment:
-      MYSQL_ROOT_PASSWORD: moca
-      MYSQL_DATABASE: moca_relayer
-    ports:
-      - "3307:3306"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-  init-relayer:
-    container_name: init-relayer
-    image: "{{$.Image}}"
-    networks:
-      - moca-network
-    volumes:
-      - "{{$.ProjectBasePath}}/deployment/dockerup:/workspace/deployment/dockerup:Z"
-      - "local-env:/workspace/deployment/dockerup/.local"
-    working_dir: "/workspace/deployment/dockerup"
-    command: >
-      bash -c "
-      rm -f init_done &&
-      bash localup.sh config 4 && 
-      touch init_done && 
-      sleep infinity
-      "
-    healthcheck:
-      test: ["CMD-SHELL", "test -f /workspace/deployment/dockerup/init_done && echo 'OK' || exit 1"]
-      interval: 10s
-      retries: 5
-    restart: "on-failure"
-{{- range .Nodes }}
-  rnode{{.NodeIndex}}:
-    container_name: moca-relayer-{{.NodeIndex}}
-    depends_on:
-      relayer-mysql:
-        condition: service_healthy
-      init-relayer:
-        condition: service_healthy
-    image: "{{$.Image}}"
-    networks:
-      - moca-network
-    volumes:
-      - "local-env:/app"
-    command: >
-      bash -c "
-      sleep {{.NodeIndex}} &&
-      moca-relayer run --config-type local --config-path /app/relayer{{.NodeIndex}}/config.json --log_dir json
-      "
-{{- end }}
-volumes:
-  db-data:
-  local-env:
-networks:
-  moca-network:
-    external: true
-`
-
 func main() {
+	// Get template file path
+	execPath, err := os.Executable()
+	if err != nil {
+		fmt.Println("Error getting executable path:", err)
+		return
+	}
+	templatePath := filepath.Join(filepath.Dir(execPath), "docker-compose.tmpl")
+
+	// If running with "go run", use current directory
+	if _, err := os.Stat(templatePath); os.IsNotExist(err) {
+		templatePath = filepath.Join("cmd", "ci", "docker-compose.tmpl")
+	}
+
 	bp := PortConfig{}
 
 	numNodes := 4
@@ -110,6 +57,15 @@ func main() {
 		BasePorts:       bp,
 	}
 
+	// Read and parse template file
+	tpl, err := template.ParseFiles(templatePath)
+	if err != nil {
+		fmt.Println("Error parsing template file:", err)
+		fmt.Println("Template path:", templatePath)
+		return
+	}
+
+	// Create output file
 	file, err := os.Create("docker-compose.yml")
 	if err != nil {
 		fmt.Println("Error creating file:", err)
@@ -117,12 +73,7 @@ func main() {
 	}
 	defer file.Close()
 
-	tpl, err := template.New("docker-compose").Parse(dockerComposeTemplate)
-	if err != nil {
-		fmt.Println("Error parsing template:", err)
-		return
-	}
-
+	// Execute template
 	err = tpl.Execute(file, config)
 	if err != nil {
 		fmt.Println("Error executing template:", err)
@@ -130,4 +81,5 @@ func main() {
 	}
 
 	fmt.Println("Docker Compose file generated successfully!")
+	fmt.Println("Template used:", templatePath)
 }

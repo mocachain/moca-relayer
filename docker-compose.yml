@@ -12,13 +12,18 @@ services:
     ports:
       - "3307:3306"
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
       timeout: 5s
       retries: 5
   init-relayer:
     container_name: init-relayer
-    image: "mocachain/moca-relayer"
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_TOKEN=${GITHUB_TOKEN}
+    image: "mocachain/moca-relayer:local"
     networks:
       - moca-network
     volumes:
@@ -26,9 +31,18 @@ services:
       - "local-env:/workspace/deployment/dockerup/.local"
     working_dir: "/workspace/deployment/dockerup"
     command: >
-      bash -c " rm -f init_done && bash localup.sh config 4 &&  touch init_done &&  sleep infinity "
+      bash -c "
+      rm -f init_done &&
+      bash localup.sh config 4 && 
+      touch init_done && 
+      sleep infinity
+      "
     healthcheck:
-      test: [ "CMD-SHELL", "test -f /workspace/deployment/dockerup/init_done && echo 'OK' || exit 1" ]
+      test:
+        [
+          "CMD-SHELL",
+          "test -f /workspace/deployment/dockerup/init_done && echo 'OK' || exit 1",
+        ]
       interval: 10s
       retries: 5
     restart: "on-failure"
@@ -39,13 +53,16 @@ services:
         condition: service_healthy
       init-relayer:
         condition: service_healthy
-    image: "mocachain/moca-relayer"
+    image: "mocachain/moca-relayer:local"
     networks:
       - moca-network
     volumes:
       - "local-env:/app"
     command: >
-      bash -c " sleep 0 && moca-relayer run --config-type local --config-path /app/relayer0/config.json --log_dir json "
+      bash -c "
+      sleep 0 &&
+      moca-relayer run --config-type local --config-path /app/relayer0/config.json --log_dir json
+      "
   rnode1:
     container_name: moca-relayer-1
     depends_on:
@@ -53,13 +70,16 @@ services:
         condition: service_healthy
       init-relayer:
         condition: service_healthy
-    image: "mocachain/moca-relayer"
+    image: "mocachain/moca-relayer:local"
     networks:
       - moca-network
     volumes:
       - "local-env:/app"
     command: >
-      bash -c " sleep 1 && moca-relayer run --config-type local --config-path /app/relayer1/config.json --log_dir json "
+      bash -c "
+      sleep 1 &&
+      moca-relayer run --config-type local --config-path /app/relayer1/config.json --log_dir json
+      "
   rnode2:
     container_name: moca-relayer-2
     depends_on:
@@ -73,7 +93,10 @@ services:
     volumes:
       - "local-env:/app"
     command: >
-      bash -c " sleep 2 && moca-relayer run --config-type local --config-path /app/relayer2/config.json --log_dir json "
+      bash -c "
+      sleep 2 &&
+      moca-relayer run --config-type local --config-path /app/relayer2/config.json --log_dir json
+      "
   rnode3:
     container_name: moca-relayer-3
     depends_on:
@@ -87,7 +110,10 @@ services:
     volumes:
       - "local-env:/app"
     command: >
-      bash -c " sleep 3 && moca-relayer run --config-type local --config-path /app/relayer3/config.json --log_dir json "
+      bash -c "
+      sleep 3 &&
+      moca-relayer run --config-type local --config-path /app/relayer3/config.json --log_dir json
+      "
 volumes:
   db-data:
   local-env:
